@@ -2,83 +2,63 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const path = require('node:path');
 
-// Initialize Sequelize with SQLite
 const sequelize = new Sequelize({
     dialect: 'sqlite',
-    storage: path.join(__dirname, '..', 'NINDO.db'), // Creates NINDO.db in root
-    logging: false, // Set to console.log to see SQL queries
+    storage: path.join(__dirname, '..', 'NINDO.db'),
+    logging: false,
 });
 
-// Define the User model
 const User = sequelize.define('User', {
-    userId: {
-        type: DataTypes.STRING,
-        primaryKey: true,
-        allowNull: false,
-    },
-    username: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    globalName: {
-        type: DataTypes.STRING,
-        allowNull: true, // Can be null for older accounts
-    },
-    avatarURL: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
+    userId: { type: DataTypes.STRING, primaryKey: true, allowNull: false },
+    username: { type: DataTypes.STRING, allowNull: false },
+    globalName: { type: DataTypes.STRING, allowNull: true },
+    avatarURL: { type: DataTypes.STRING, allowNull: true },
 });
 
-// Define the Clan model
 const Clan = sequelize.define('Clan', {
-    clanId: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
+    clanId: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    name: { type: DataTypes.STRING, allowNull: false, unique: true },
+    motto: { type: DataTypes.STRING, allowNull: true },
+    roleId: { type: DataTypes.STRING, allowNull: false, unique: true }, // The associated Discord Role ID
+    ownerId: { type: DataTypes.STRING, allowNull: false }, // Foreign Key to User table
+    // We store arrays of user IDs as JSON strings in a TEXT field.
+    viceLeaders: {
+        type: DataTypes.TEXT,
+        defaultValue: '[]',
+        get() { return JSON.parse(this.getDataValue('viceLeaders')); },
+        set(val) { this.setDataValue('viceLeaders', JSON.stringify(val)); },
     },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true, // Clan names must be unique
+    officers: {
+        type: DataTypes.TEXT,
+        defaultValue: '[]',
+        get() { return JSON.parse(this.getDataValue('officers')); },
+        set(val) { this.setDataValue('officers', JSON.stringify(val)); },
     },
-    motto: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    // The Discord Role ID associated with this clan, can be per-guild if needed
-    roleId: {
-        type: DataTypes.STRING,
-        allowNull: true,
+    members: {
+        type: DataTypes.TEXT,
+        defaultValue: '[]',
+        get() { return JSON.parse(this.getDataValue('members')); },
+        set(val) { this.setDataValue('members', JSON.stringify(val)); },
     }
 });
 
-// A user can own a clan
 User.hasOne(Clan, { foreignKey: 'ownerId' });
 Clan.belongsTo(User, { as: 'owner', foreignKey: 'ownerId' });
 
-
-// Define the HelpQuestion model
 const HelpQuestion = sequelize.define('HelpQuestion', {
-    questionId: {
-        type: DataTypes.INTEGER,
+    // This name is used as the unique ID and the dropdown label
+    name: {
+        type: DataTypes.STRING,
         primaryKey: true,
-        autoIncrement: true,
-    },
-    // We store the guildId to make questions server-specific
-    guildId: {
-        type: DataTypes.STRING,
         allowNull: false,
     },
-    questionText: {
-        type: DataTypes.STRING,
+    // We store the message object (content and embeds) as a JSON string
+    answerData: {
+        type: DataTypes.TEXT,
         allowNull: false,
-    },
-    answerText: {
-        type: DataTypes.TEXT, // Use TEXT for potentially long answers
-        allowNull: false,
+        get() { return JSON.parse(this.getDataValue('answerData')); },
+        set(val) { this.setDataValue('answerData', JSON.stringify(val)); },
     }
 });
-
 
 module.exports = { sequelize, User, Clan, HelpQuestion };

@@ -33,7 +33,7 @@ module.exports = {
             if (parsedResult.length === 0) {
                 return interaction.reply({
                     content: "I couldn't understand that date and time. Please try a clearer format like `March 20 5pm` or `in 30 minutes`.",
-                    ephemeral: true
+                    flags: 64
                 });
             }
 
@@ -60,11 +60,11 @@ module.exports = {
                 )
                 .setFooter({ text: 'This timestamp will appear correctly for everyone in their local time.' });
 
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.reply({ embeds: [embed], flags: 64 });
 
         } catch (error) {
             console.error('[TimestampCommand] Error:', error);
-            await interaction.reply({ content: 'An error occurred while parsing the date. Please check your input.', ephemeral: true });
+            await interaction.reply({ content: 'An error occurred while parsing the date. Please check your input.', flags: 64 });
         }
     },
 };
