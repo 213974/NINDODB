@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { sequelize } = require('../database/database.js');
+const config = require('./config.json'); // Load the admin config
 
 const token = process.env.TOKEN;
 if (!token) {
@@ -12,8 +13,14 @@ if (!token) {
 }
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds], // Start with minimal intents
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers
+    ],
 });
+
+// Pass config to the client object so it's accessible everywhere
+client.config = config;
 
 // Load Commands
 client.commands = new Collection();
@@ -55,7 +62,6 @@ for (const file of eventFiles) {
     try {
         await sequelize.authenticate();
         console.log('[DATABASE] Connection has been established successfully.');
-        // In a real app, you might sync models here: await sequelize.sync();
 
         await client.login(token);
     } catch (error) {
