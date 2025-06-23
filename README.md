@@ -2,12 +2,19 @@
 
 
 
+
+
+
 ░██████╗░█████╗░██████╗░░█████╗░██████╗░██╗░░░██╗███╗░░██╗
 ██╔════╝██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝████╗░██║
 ╚█████╗░██║░░██║██████╔╝██║░░██║██║░░██║░╚████╔╝░██╔██╗██║
 ░╚═══██╗██║░░██║██╔══██╗██║░░██║██║░░██║░░╚██╔╝░░██║╚████║
 ██████╔╝╚█████╔╝██║░░██║╚█████╔╝██████╔╝░░░██║░░░██║░╚███║
 ╚═════╝░░╚════╝░╚═╝░░╚═╝░╚════╝░╚═════╝░░░░╚═╝░░░╚═╝░░╚══╝
+
+
+
+
 
 
 # NINDO - A Discord Bot
@@ -88,7 +95,7 @@ To update PM2 to its latest version, run `pm2 update`.
 
 ## License and Usage
 
-**Copyright (c) 2025 Sorodyn. All Rights Reserved.**
+**Copyright (c) 2025 NINDO. All Rights Reserved.**
 
 This project is source-available but is under a **proprietary license**. You are welcome to view the code for educational purposes.
 
