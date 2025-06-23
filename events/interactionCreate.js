@@ -1,6 +1,6 @@
 // events/interactionCreate.js
 const { Events, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { Clan, HelpQuestion, User } = require('../database/database.js');
+const { Clan, HelpQuestion } = require('../database/database.js');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -8,14 +8,18 @@ module.exports = {
         // --- CHAT INPUT COMMAND HANDLER ---
         if (interaction.isChatInputCommand()) {
             const command = interaction.client.commands.get(interaction.commandName);
+            // This logic handles both regular commands and admin subcommands
             if (!command) {
-                // Check if it's an admin subcommand
                 const adminCommand = interaction.client.commands.get('admin');
                 if (adminCommand && interaction.commandName === 'admin') {
                     try {
                         await adminCommand.execute(interaction);
                     } catch (error) {
                         console.error(`Error executing admin command:`, error);
+                        // Handle error reply
+                        const replyOptions = { content: 'There was an error while executing this admin command!', flags: 64 };
+                        if (interaction.replied || interaction.deferred) await interaction.followUp(replyOptions);
+                        else await interaction.reply(replyOptions);
                     }
                 } else {
                     console.error(`No command matching ${interaction.commandName} was found.`);
@@ -26,8 +30,9 @@ module.exports = {
                 await command.execute(interaction);
             } catch (error) {
                 console.error(`Error executing ${interaction.commandName}`, error);
-                if (interaction.replied || interaction.deferred) await interaction.followUp({ content: 'There was an error executing this command!', flags: 64 });
-                else await interaction.reply({ content: 'There was an error executing this command!', flags: 64 });
+                const replyOptions = { content: 'There was an error executing this command!', flags: 64 };
+                if (interaction.replied || interaction.deferred) await interaction.followUp(replyOptions);
+                else await interaction.reply(replyOptions);
             }
         }
 
@@ -54,8 +59,10 @@ module.exports = {
         else if (interaction.isButton()) {
             const [handler, action, ...data] = interaction.customId.split('_');
 
+            if (handler !== 'clan') return; // Only process clan-related buttons
+
             // -- Clan Invite Handler --
-            if (handler === 'clan' && action === 'invite') {
+            if (action === 'invite') {
                 const [decision, clanId, targetId] = data;
 
                 if (interaction.user.id !== targetId) {
@@ -68,29 +75,28 @@ module.exports = {
 
                 const clan = await Clan.findByPk(clanId);
                 if (!clan) {
-                    return interaction.message.edit({ content: 'This clan no longer exists.', components: [disabledRow] });
+                    return interaction.message.edit({ content: 'This clan no longer exists.', components: [disabledRow], embeds: [] });
                 }
 
                 if (decision === 'accept') {
                     clan.members = [...clan.members, targetId];
                     await clan.save();
 
-                    // Add role to user
                     try {
                         const role = await interaction.guild.roles.fetch(clan.roleId);
                         const member = await interaction.guild.members.fetch(targetId);
                         if (role && member) await member.roles.add(role);
-                    } catch (e) { console.error(`Failed to add role ${clan.roleId} to user ${targetId}`, e); }
+                    } catch (e) { console.error(`[Invite] Failed to add role ${clan.roleId} to user ${targetId}`, e); }
 
-                    interaction.message.edit({ content: `<@${targetId}> has accepted the invitation to join **${clan.name}**!`, components: [disabledRow] });
+                    return interaction.message.edit({ content: `<@${targetId}> has accepted the invitation to join **${clan.name}**!`, components: [disabledRow], embeds: [] });
 
                 } else if (decision === 'deny') {
-                    interaction.message.edit({ content: 'The invitation was declined.', components: [disabledRow] });
+                    return interaction.message.edit({ content: 'The invitation was declined.', components: [disabledRow], embeds: [] });
                 }
             }
 
             // -- Clan Leave Handler --
-            if (handler === 'clan' && action === 'leave') {
+            if (action === 'leave') {
                 const [decision, clanId, userId] = data;
 
                 if (interaction.user.id !== userId) {
@@ -101,35 +107,33 @@ module.exports = {
                 const disabledRow = ActionRowBuilder.from(interaction.message.components[0]);
                 disabledRow.components.forEach(c => c.setDisabled(true));
 
-                const clan = await Clan.findByPk(clanId);
-                if (!clan) {
-                    return interaction.message.edit({ content: 'This clan no longer exists.', components: [disabledRow] });
+                if (decision === 'cancel') {
+                    return interaction.message.edit({ content: 'Clan leave operation cancelled.', components: [disabledRow], embeds: [] });
                 }
 
                 if (decision === 'confirm') {
-                    // Remove user from all lists
+                    const clan = await Clan.findByPk(clanId);
+                    if (!clan) {
+                        return interaction.message.edit({ content: 'This clan no longer exists.', components: [disabledRow], embeds: [] });
+                    }
+
                     clan.members = clan.members.filter(id => id !== userId);
                     clan.officers = clan.officers.filter(id => id !== userId);
                     clan.viceLeaders = clan.viceLeaders.filter(id => id !== userId);
                     await clan.save();
 
-                    // Remove role
                     try {
                         const role = await interaction.guild.roles.fetch(clan.roleId);
                         const member = await interaction.guild.members.fetch(userId);
                         if (role && member) await member.roles.remove(role);
-                    } catch (e) { console.error(`Failed to remove role ${clan.roleId} from user ${userId}`, e); }
+                    } catch (e) { console.error(`[Leave] Failed to remove role ${clan.roleId} from user ${userId}`, e); }
 
-                    // DM owner
                     try {
                         const owner = await interaction.client.users.fetch(clan.ownerId);
                         await owner.send(`**Member Left:** ${interaction.user.tag} has left your clan, **${clan.name}**.`);
-                    } catch (e) { console.error(`Failed to DM clan owner ${clan.ownerId}`, e); }
+                    } catch (e) { console.error(`[Leave] Failed to DM clan owner ${clan.ownerId}`, e); }
 
-                    await interaction.message.edit({ content: 'You have successfully left the clan.', components: [disabledRow] });
-
-                } else if (decision === 'cancel') {
-                    await interaction.message.edit({ content: 'Clan leave operation cancelled.', components: [disabledRow] });
+                    return interaction.message.edit({ content: 'You have successfully left the clan.', components: [disabledRow], embeds: [] });
                 }
             }
         }
