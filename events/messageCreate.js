@@ -30,7 +30,7 @@ function formatUptime(ms) {
 module.exports = {
     name: Events.MessageCreate,
     async execute(message) {
-        // Only respond in DMs, ignore bots
+        // Only respond in DMs and ignore other bots
         if (message.channel.type !== ChannelType.DM || message.author.bot) {
             return;
         }
@@ -40,20 +40,20 @@ module.exports = {
             return;
         }
 
+        console.log(`[EVENT] DM mention received from ${message.author.tag}.`);
+
         const now = Date.now();
         const { client } = message;
 
         // Check global cooldown
         if (now < client.globalDmStatusCooldown) {
-            // Silently ignore if on global cooldown
-            return;
+            return; // Silently ignore
         }
 
         // Check user-specific cooldown
         const userCooldown = client.dmStatusCooldowns.get(message.author.id);
         if (userCooldown && now < userCooldown) {
-            // Silently ignore if user is on cooldown
-            return;
+            return; // Silently ignore
         }
 
         // All checks passed, set cooldowns

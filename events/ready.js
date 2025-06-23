@@ -1,5 +1,5 @@
 // events/ready.js
-const { Events, ActivityType } = require('discord.js');
+const { Events, ActivityType, EmbedBuilder } = require('discord.js');
 const { sequelize, User } = require('../database/database.js');
 
 async function syncUser(member) {
@@ -46,7 +46,6 @@ module.exports = {
                     await syncUser(member);
                 }
             } catch (err) {
-                // Ignore missing access errors for guilds where we can't fetch members
                 if (err.code !== 50001) {
                     console.error(`[DATABASE] Could not process members for guild ${guild.name}.`, err);
                 }
@@ -62,5 +61,20 @@ module.exports = {
             }],
             status: 'online',
         });
+
+        // --- Notify Admin on Startup ---
+        try {
+            const adminUser = await client.users.fetch('431407603814367233');
+            if (adminUser) {
+                const onlineEmbed = new EmbedBuilder()
+                    .setColor('#00FF00')
+                    .setTitle('Bot Online')
+                    .setDescription(`${client.user.username} has successfully connected to the Discord gateway.`)
+                    .setTimestamp();
+                await adminUser.send({ embeds: [onlineEmbed] });
+            }
+        } catch (e) {
+            console.error('Could not find or DM the admin user on startup.', e);
+        }
     },
 };
