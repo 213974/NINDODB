@@ -8,19 +8,18 @@ const commands = [];
 const commandFolders = fs.readdirSync(path.join(__dirname, '..', 'commands'));
 
 for (const folder of commandFolders) {
-    const commandFiles = fs.readdirSync(path.join(__dirname, '..', 'commands', folder)).filter(file => file.endsWith('.js'));
+    const folderPath = path.join(__dirname, '..', 'commands', folder)
+    const commandFiles = fs.readdirSync(folderPath).filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
-        // --- IMPORTANT: Skip deploying the admin command ---
-        if (file === 'admin.js') {
-            console.log(`[DEPLOY] Skipping global deployment for: ${file}`);
-            continue;
-        }
-
-        const filePath = path.join(__dirname, '..', 'commands', folder, file);
+        // The logic that skipped 'admin.js' has been REMOVED.
+        // All commands found will now be added to the deployment list.
+        const filePath = path.join(folderPath, file);
         const command = require(filePath);
         if ('data' in command && 'execute' in command) {
             commands.push(command.data.toJSON());
             console.log(`[DEPLOY] Added command to deployment list: /${command.data.name}`);
+        } else {
+            console.warn(`[DEPLOY] The command at ${filePath} is missing a required "data" or "execute" property.`);
         }
     }
 }

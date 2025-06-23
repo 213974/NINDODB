@@ -70,7 +70,6 @@ module.exports = {
 
             // --- CLAN COMMANDS ---
             if (group === 'clan') {
-                // ... Clan command logic remains the same
                 if (subcommand === 'create') {
                     const owner = interaction.options.getUser('owner');
                     const name = interaction.options.getString('name');
@@ -100,7 +99,6 @@ module.exports = {
 
             // --- GUIDE COMMANDS ---
             if (group === 'guide') {
-                // ... Guide command logic remains the same
                 const name = interaction.options.getString('name');
                 if (subcommand === 'add' || subcommand === 'edit') {
                     const messageId = interaction.options.getString(subcommand === 'add' ? 'message_id' : 'new_message_id');
