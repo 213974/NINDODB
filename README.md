@@ -1,3 +1,15 @@
+﻿
+
+
+
+░██████╗░█████╗░██████╗░░█████╗░██████╗░██╗░░░██╗███╗░░██╗  ░░░░░░░  ███╗░░██╗██╗███╗░░██╗██████╗░░█████╗░
+██╔════╝██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝████╗░██║  ░░██╗░░  ████╗░██║██║████╗░██║██╔══██╗██╔══██╗
+╚█████╗░██║░░██║██████╔╝██║░░██║██║░░██║░╚████╔╝░██╔██╗██║  ██████╗  ██╔██╗██║██║██╔██╗██║██║░░██║██║░░██║
+░╚═══██╗██║░░██║██╔══██╗██║░░██║██║░░██║░░╚██╔╝░░██║╚████║  ╚═██╔═╝  ██║╚████║██║██║╚████║██║░░██║██║░░██║
+██████╔╝╚█████╔╝██║░░██║╚█████╔╝██████╔╝░░░██║░░░██║░╚███║  ░░╚═╝░░  ██║░╚███║██║██║░╚███║██████╔╝╚█████╔╝
+╚═════╝░░╚════╝░╚═╝░░╚═╝░╚════╝░╚═════╝░░░░╚═╝░░░╚═╝░░╚══╝  ░░░░░░░  ╚═╝░░╚══╝╚═╝╚═╝░░╚══╝╚═════╝░░╚════╝░
+
+
 # NINDO - A Discord Bot
 
 A multi-purpose Discord bot designed exclusively for its intended communities.
@@ -13,7 +25,7 @@ A multi-purpose Discord bot designed exclusively for its intended communities.
 
 ## Setup & Installation (For Authorized Users)
 
-Follow these steps to get a local copy up and running for development or approved deployment.
+Follow these steps to get a local copy up and running.
 
 ### Prerequisites
 
@@ -30,73 +42,49 @@ You will need **Node.js (v18.x or higher)** installed.
     ```sh
     cd NINDODB
     ```
-3.  **Install Dependencies:** Run the following commands in your terminal.
-
+3.  **Install Dependencies:**
     ```sh
-    # This single command installs all required local dependencies from package.json
-    # (discord.js, sequelize, dotenv, etc.)
+    # This installs all required project dependencies (discord.js, sequelize, etc.)
     npm install
     
-    # This second command installs the PM2 process manager globally on your system
+    # This installs the PM2 process manager globally on your system
     npm install pm2 -g
     ```
 
-4.  **Configure Environment:** Create a `.env` file in the root directory. You can do this by copying the `.env.example` file. Then, fill in your bot's credentials from the [Discord Developer Portal](https://discord.com/developers/applications).
+4.  **Configure Environment:** Create a `.env` file by copying `.env.example`. Then, fill in the values.
     *   `TOKEN`: Your bot's secret token.
     *   `CLIENT_ID`: Your bot's application/client ID.
+    *   `DEV_GUILD_ID`: (Optional) The ID of your private testing server. Using this makes commands update instantly during development.
 
 ### Deploying Commands
 
-Before starting the bot for the first time, you must register its slash commands with Discord. Run the following command:
+Before starting the bot, you must register its slash commands with Discord.
+
 ```sh
 npm run deploy
 ```
-You only need to run this command again if you add or modify command definitions in the future.
+*   If you set `DEV_GUILD_ID` in your `.env` file, commands will update **instantly** in that server only.
+*   If `DEV_GUILD_ID` is blank, commands will be deployed **globally**. This is for production and may take **up to an hour** to appear in all servers.
 
 ## Running and Managing the Bot
 
-This project uses **PM2 (Process Manager 2)** to keep the bot running continuously under the process name `NINDODB`. PM2 will automatically restart the bot if it crashes and allows it to run in the background.
+This project uses **PM2** to keep the bot running continuously.
 
 ### Starting the Bot
-
-To start the bot for the first time and have it run in the background, use:
 ```sh
 npm start
 ```
 
 ### Managing the Bot
-
-Once the bot is running, you can manage it with these commands from your terminal:
-
-*   **To view live logs:**
-    ```sh
-    npm run logs
-    ```
-    *(Press `Ctrl+C` to exit the log view. The bot will continue running.)*
-
-*   **To restart the bot:**
-    ```sh
-    npm run restart
-    ```
-
-*   **To stop the bot:**
-    ```sh
-    npm run stop
-    ```
-
-*   **To view the status of all applications:**
-    ```sh
-    pm2 list
-    ```
+*   **To view live logs:** `npm run logs`
+*   **To restart the bot:** `npm run restart`
+*   **To stop the bot:** `npm run stop`
+*   **To view PM2 status:** `pm2 list`
 
 ## Project Maintenance
 
 ### Updating PM2
-
-To update PM2 to its latest version, run the following command. This will download the update and then restart the PM2 daemon to apply it.
-```sh
-pm2 update
-```
+To update PM2 to its latest version, run `pm2 update`.
 
 ## License and Usage
 

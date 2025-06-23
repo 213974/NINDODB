@@ -1,4 +1,4 @@
-﻿// commands/utility/clan.js
+﻿// commands/core/clan.js
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { Clan } = require('../../database/database');
 const { findClanForUser, getAuthority, AUTHORITY_LEVELS } = require('../../utils/clanManager');

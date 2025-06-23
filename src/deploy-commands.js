@@ -5,23 +5,29 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const commands = [];
-const commandsPath = path.join(__dirname, '..', 'commands');
-const commandFolders = fs.readdirSync(commandsPath);
+const commandFolders = fs.readdirSync(path.join(__dirname, '..', 'commands'));
 
 for (const folder of commandFolders) {
-    const folderPath = path.join(commandsPath, folder);
-    const commandFiles = fs.readdirSync(folderPath).filter(file => file.endsWith('.js'));
+    const commandFiles = fs.readdirSync(path.join(__dirname, '..', 'commands', folder)).filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
-        const filePath = path.join(folderPath, file);
+        // --- IMPORTANT: Skip deploying the admin command ---
+        if (file === 'admin.js') {
+            console.log(`[DEPLOY] Skipping global deployment for: ${file}`);
+            continue;
+        }
+
+        const filePath = path.join(__dirname, '..', 'commands', folder, file);
         const command = require(filePath);
         if ('data' in command && 'execute' in command) {
             commands.push(command.data.toJSON());
+            console.log(`[DEPLOY] Added command to deployment list: /${command.data.name}`);
         }
     }
 }
 
 const token = process.env.TOKEN;
 const clientId = process.env.CLIENT_ID;
+const guildId = process.env.DEV_GUILD_ID;
 
 if (!token || !clientId) {
     console.error('Error: TOKEN or CLIENT_ID is missing from .env file.');
@@ -34,13 +40,25 @@ const rest = new REST().setToken(token);
     try {
         console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
-        // Use applicationCommands for global commands
-        const data = await rest.put(
-            Routes.applicationCommands(clientId),
-            { body: commands },
-        );
+        // Check if a development guild ID is provided
+        if (guildId) {
+            // Deploy commands to the development guild INSTANTLY
+            console.log(`Deploying commands to development guild: ${guildId}`);
+            await rest.put(
+                Routes.applicationGuildCommands(clientId, guildId),
+                { body: commands },
+            );
+            console.log(`Successfully reloaded commands for development guild.`);
+        } else {
+            // Deploy commands globally for production (takes up to 1 hour)
+            console.log('Deploying commands globally.');
+            await rest.put(
+                Routes.applicationCommands(clientId),
+                { body: commands },
+            );
+            console.log(`Successfully reloaded commands globally.`);
+        }
 
-        console.log(`Successfully reloaded ${data.length} application (/) commands globally.`);
     } catch (error) {
         console.error(error);
     }

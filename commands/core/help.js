@@ -1,4 +1,4 @@
-// commands/utility/help.js
+// commands/core/help.js
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
 const { HelpQuestion } = require('../../database/database');
 

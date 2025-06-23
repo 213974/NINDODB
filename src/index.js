@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { sequelize } = require('../database/database.js');
-const config = require('./config.json'); // Load the admin config
+const config = require('./config.json');
 
 const token = process.env.TOKEN;
 if (!token) {
@@ -15,15 +15,20 @@ if (!token) {
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMembers
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.DirectMessages,
+        GatewayIntentBits.MessageContent,
     ],
 });
 
-// Pass config to the client object so it's accessible everywhere
 client.config = config;
+client.commands = new Collection();
+
+// Cooldowns for the DM status feature
+client.dmStatusCooldowns = new Collection(); // Per-user cooldown
+client.globalDmStatusCooldown = 0;           // Global cooldown
 
 // Load Commands
-client.commands = new Collection();
 const commandsPath = path.join(__dirname, '..', 'commands');
 const commandFolders = fs.readdirSync(commandsPath);
 
