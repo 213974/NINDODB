@@ -1,9 +1,9 @@
 ﻿
-discord.gg/rbxnindo
+### discord.gg/rbxnindo
 
-discord.gg/rbxnindo
+## discord.gg/rbxnindo
 
-discord.gg/rbxnindo
+# discord.gg/rbxnindo
 
 ░██████╗░█████╗░██████╗░░█████╗░██████╗░██╗░░░██╗███╗░░██╗
 ██╔════╝██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝████╗░██║
@@ -12,11 +12,11 @@ discord.gg/rbxnindo
 ██████╔╝╚█████╔╝██║░░██║╚█████╔╝██████╔╝░░░██║░░░██║░╚███║
 ╚═════╝░░╚════╝░╚═╝░░╚═╝░╚════╝░╚═════╝░░░░╚═╝░░░╚═╝░░╚══╝
 
-discord.gg/rbxnindo
+# discord.gg/rbxnindo
 
-discord.gg/rbxnindo
+## discord.gg/rbxnindo
 
-discord.gg/rbxnindo
+### discord.gg/rbxnindo
 
 # NINDO - A Discord Bot
 
