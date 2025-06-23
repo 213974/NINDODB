@@ -7,6 +7,11 @@ module.exports = {
         .setName('admin')
         .setDescription('Admin-only commands.')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('help')
+                .setDescription('Shows a guide for all admin commands.')
+        )
         .addSubcommandGroup(group => group.setName('clan').setDescription('Admin commands for clan management.')
             .addSubcommand(subcommand => subcommand
                 .setName('create')
@@ -47,39 +52,47 @@ module.exports = {
         await interaction.deferReply({ flags: 64 });
 
         try {
+            // --- HELP COMMAND (No group) ---
+            if (!group && subcommand === 'help') {
+                const embed = new EmbedBuilder()
+                    .setColor('#B22222')
+                    .setTitle('Admin Command Guide')
+                    .setDescription('Here are all available admin commands.')
+                    .addFields(
+                        { name: '/admin clan create', value: 'Creates a new clan, assigning an owner and role.' },
+                        { name: '/admin clan change_owner', value: 'Transfers clan ownership to a new user.' },
+                        { name: '/admin guide add', value: 'Adds a new topic to the help guide using a message ID.' },
+                        { name: '/admin guide remove', value: 'Removes a topic from the help guide by its name.' },
+                        { name: '/admin guide edit', value: 'Updates a help guide topic with a new message ID.' }
+                    );
+                return interaction.editReply({ embeds: [embed] });
+            }
+
             // --- CLAN COMMANDS ---
             if (group === 'clan') {
+                // ... Clan command logic remains the same
                 if (subcommand === 'create') {
                     const owner = interaction.options.getUser('owner');
                     const name = interaction.options.getString('name');
                     const role = interaction.options.getRole('role');
-
                     const existingName = await Clan.findOne({ where: { name: name } });
                     if (existingName) return interaction.editReply(`A clan with the name "${name}" already exists.`);
-
                     const existingRole = await Clan.findOne({ where: { roleId: role.id } });
                     if (existingRole) return interaction.editReply(`The role ${role.name} is already assigned to another clan.`);
-
                     await Clan.create({ name, roleId: role.id, ownerId: owner.id });
-
                     const embed = new EmbedBuilder().setColor('#00FF00').setTitle('👑 Official Clan Owner Designated 👑').setDescription(`${owner} has been designated as the official Clan Owner of **${name}**!`).addFields({ name: 'Corresponding Role', value: `${role}` }).setTimestamp();
-
                     await interaction.channel.send({ content: `${owner}`, embeds: [embed] });
                     return interaction.editReply('Clan successfully created.');
                 }
                 if (subcommand === 'change_owner') {
                     const clanRole = interaction.options.getRole('clan_role');
                     const newOwner = interaction.options.getUser('new_owner');
-
                     const clan = await Clan.findOne({ where: { roleId: clanRole.id } });
                     if (!clan) return interaction.editReply(`No clan is associated with the role ${clanRole}.`);
-
                     const oldOwnerId = clan.ownerId;
                     clan.ownerId = newOwner.id;
                     await clan.save();
-
                     const embed = new EmbedBuilder().setColor('#FFFF00').setTitle('👑 Clan Ownership Transferred 👑').setDescription(`Ownership of **${clan.name}** has been transferred to ${newOwner}.`).addFields({ name: 'Previous Owner', value: `<@${oldOwnerId}>` }, { name: 'New Owner', value: `${newOwner}` }).setTimestamp();
-
                     await interaction.channel.send({ embeds: [embed] });
                     return interaction.editReply('Clan ownership successfully transferred.');
                 }
@@ -87,6 +100,7 @@ module.exports = {
 
             // --- GUIDE COMMANDS ---
             if (group === 'guide') {
+                // ... Guide command logic remains the same
                 const name = interaction.options.getString('name');
                 if (subcommand === 'add' || subcommand === 'edit') {
                     const messageId = interaction.options.getString(subcommand === 'add' ? 'message_id' : 'new_message_id');
@@ -94,14 +108,11 @@ module.exports = {
                     try {
                         fetchedMessage = await interaction.channel.messages.fetch(messageId);
                     } catch { return interaction.editReply('Could not find a message with that ID in this channel.'); }
-
                     if (subcommand === 'add') {
                         const count = await HelpQuestion.count();
                         if (count >= 25) return interaction.editReply('Cannot add question. The maximum limit of 25 has been reached.');
                     }
-
                     const answerData = { content: fetchedMessage.content || " ", embeds: fetchedMessage.embeds.map(embed => embed.toJSON()) };
-
                     await HelpQuestion.upsert({ name, answerData });
                     return interaction.editReply(`Successfully ${subcommand}ed the help entry named "**${name}**".`);
                 }
@@ -112,7 +123,7 @@ module.exports = {
                 }
             }
         } catch (error) {
-            console.error(`Error executing /admin ${group} ${subcommand}:`, error);
+            console.error(`Error executing /admin command:`, error);
             return interaction.editReply('An unexpected error occurred while processing your command.');
         }
     },

@@ -23,9 +23,10 @@ module.exports = {
 
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();
+        // This top-level defer makes all replies ephemeral unless specified otherwise later
         await interaction.deferReply({ flags: 64 });
 
-        // --- HELP (Public) ---
+        // --- HELP (Public, but ephemeral reply) ---
         if (subcommand === 'help') {
             const embed = new EmbedBuilder()
                 .setColor('#1E90FF')
@@ -42,7 +43,7 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        // --- VIEW (Public) ---
+        // --- VIEW (Public, but ephemeral reply) ---
         if (subcommand === 'view') {
             const role = interaction.options.getRole('clan_role');
             let clan;
@@ -128,7 +129,6 @@ module.exports = {
 
             if (userAuthLevel <= AUTHORITY_LEVELS[targetAuth]) return interaction.editReply('You do not have the authority to kick this member.');
 
-            // Remove from all arrays
             clan.members = clan.members.filter(id => id !== target.id);
             clan.officers = clan.officers.filter(id => id !== target.id);
             clan.viceLeaders = clan.viceLeaders.filter(id => id !== target.id);
@@ -168,19 +168,17 @@ module.exports = {
             if (userAuthLevel < AUTHORITY_LEVELS['Vice Leader']) return interaction.editReply('Only Vice Leaders and above can manage authority.');
 
             const target = interaction.options.getUser('user');
-            const newLevel = interaction.options.getString('level'); // 'members', 'officers', or 'viceLeaders'
+            const newLevel = interaction.options.getString('level');
             const targetAuth = getAuthority(clan, target.id);
 
             if (!targetAuth) return interaction.editReply(`${target.username} is not in your clan.`);
             if (AUTHORITY_LEVELS[targetAuth] >= userAuthLevel) return interaction.editReply('You cannot change the authority of someone at or above your own level.');
             if (newLevel === 'viceLeaders' && userAuthLevel < AUTHORITY_LEVELS['Clan Leader']) return interaction.editReply('Only the Clan Leader can promote to Vice Leader.');
 
-            // Remove user from all current authority lists
             clan.members = clan.members.filter(id => id !== target.id);
             clan.officers = clan.officers.filter(id => id !== target.id);
             clan.viceLeaders = clan.viceLeaders.filter(id => id !== target.id);
 
-            // Add to the new list
             clan[newLevel] = [...clan[newLevel], target.id];
             await clan.save();
 
