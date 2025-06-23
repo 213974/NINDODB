@@ -35,6 +35,8 @@ A multi-purpose Discord bot designed exclusively for its intended communities.
 
 Follow these steps to get a local copy up and running.
 
+If you run into any problems add `solonovo` on discord.
+
 ### Prerequisites
 
 You will need **Node.js (v18.x or higher)** installed.
